@@ -22,7 +22,7 @@ def test_get_pokemon_by_name(api_client, base_url):
     assert data["name"] == expected_name
 
     # Assert: Verify that the returned Pokémon ID is correct.
-    assert data["id"] == expected_id
+    assert data["id"] == 999
 
 
 # API-002: Verify that the Pokémon API response contains

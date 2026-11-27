@@ -1,44 +1,83 @@
 
-name: API Tests
+name: Combined UI and API Tests
 
-# Run the workflow whenever code is pushed
-# or a pull request is created.
+# Run both test suites whenever code is pushed
+# or a pull request is created in this repository.
 on:
   push:
   pull_request:
 
 jobs:
-  api-tests:
-    name: Run API Test Suite
+
+  # Job 1: Run Playwright UI automation tests.
+  ui-tests:
+    name: Run UI Automation Tests
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Download the repository source code.
-      - name: Checkout repository
+      # Download the UI testing repository.
+      - name: Checkout UI repository
         uses: actions/checkout@v4
+        with:
+          repository: Albert-Gavra/SwagLabs-Manual-Testing
+          ref: main
+          path: ui-project
 
-      # Step 2: Set up Python environment.
+      # Set up Python environment.
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      # Step 3: Install project dependencies.
-      - name: Install dependencies
+      # Install UI project dependencies.
+      - name: Install UI dependencies
+        working-directory: ui-project/SkillMe-Week-3
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      # Step 4: Create the reports directory.
+      # Install Chromium and its required system dependencies.
+      - name: Install Playwright Chromium
+        working-directory: ui-project/SkillMe-Week-3
+        run: python -m playwright install --with-deps chromium
+
+      # Run the Playwright UI test suite.
+      - name: Run UI tests
+        working-directory: ui-project/SkillMe-Week-3
+        run: python -m pytest
+
+  # Job 2: Run API automation tests.
+  api-tests:
+    name: Run API Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      # Download the API testing repository.
+      - name: Checkout API repository
+        uses: actions/checkout@v4
+
+      # Set up Python environment.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Install API project dependencies.
+      - name: Install API dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      # Create the reports directory.
       - name: Create reports directory
         run: mkdir -p reports
 
-      # Step 5: Run the API test suite and generate HTML report.
+      # Run API tests and generate an HTML report.
       - name: Run API tests
         run: |
           python -m pytest --html=reports/api-test-report.html --self-contained-html
 
-      # Step 6: Upload the HTML report as a workflow artifact.
+      # Upload the API test report.
       - name: Upload API test report
         if: always()
         uses: actions/upload-artifact@v4
